@@ -1,0 +1,7 @@
+PyQt5
+GitPython
+requests
+python-docx
+reportlab
+pyperclip
+pyinstaller
