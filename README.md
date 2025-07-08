@@ -29,9 +29,9 @@ rm -rf venv
 
 ## 使用方法
 
-下载工具
+[点击这里下载](https://gitee.com/szxio/ai-daily-news-generator/releases/tag/V0.0.1)
 
-
+![image-20250708091111904](https://szx-bucket1.oss-cn-hangzhou.aliyuncs.com/picgo/image-20250708091111904.png)
 
 双击运行
 
