@@ -1,72 +1,40 @@
 # AI日报生成器
 
-AI日报生成器是一款自动化工具，旨在帮助开发者根据Git提交记录快速生成每日开发报告。
+作为程序员，你是否为每天的日报不知道写啥而烦恼，别慌，可以使用这款AI日报生成器，可以自动获取指定仓库的今日提交记录，配合AI自动生成，解决你的日报烦恼
+
+你可以直接下载打包好的包，也可以自己编译运行
 
 ## 创建虚拟环境
 
-在项目根目录下运行以下命令来创建虚拟环境：
-
-```bash
 python -m venv venv
-```
 
 ## 激活虚拟环境
 
-在Windows上运行：
-```bash
-venv\Scripts\activate
-```
-
-在Unix或MacOS上运行：
-```bash
-source venv/bin/activate
-```
+.\venv\Scripts\Activate.ps1
 
 ## 安装
 
-激活虚拟环境后，安装项目依赖：
-
-```bash
 pip install -r requirements.txt
-```
 
 ## 运行
-
-在虚拟环境里，运行主程序：
-
-```bash
 python main.py
-```
 
 ## 打包
 
-如需将应用打包为可执行文件，可以使用PyInstaller：
-
-```bash
-pyinstaller --onefile main.py
-```
+pyinstaller --noconfirm --onefile --windowed main.py
 
 ## 删除虚拟环境
 
-当不再需要虚拟环境时，可以直接删除venv文件夹：
-
-```bash
 rm -rf venv
-```
-
-在Windows上：
-
-```bash
-rmdir /s /q venv
-```
 
 ## 使用方法
 
-启动应用后，你可以：
+[点击这里下载](https://gitee.com/szxio/ai-daily-news-generator/releases/tag/V0.0.1)
 
-- 选择一个或多个Git仓库目录
-- 加载指定日期的提交记录
-- 根据作者过滤提交记录
-- 生成、复制和导出报告
+![image-20250708091111904](https://szx-bucket1.oss-cn-hangzhou.aliyuncs.com/picgo/image-20250708091111904.png)
 
-如需调用AI功能，确保已配置API密钥。
+双击运行
+
+![image-20250708090715128](https://szx-bucket1.oss-cn-hangzhou.aliyuncs.com/picgo/image-20250708090715128.png)
+
+![image-20250708090432052](https://szx-bucket1.oss-cn-hangzhou.aliyuncs.com/picgo/image-20250708090432052.png)
