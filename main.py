@@ -94,6 +94,19 @@ class DailyReportApp(QWidget):
         self.selected_dirs = []
         self.user_combos = {}  # 每个tab的用户下拉框
 
+        # 恢复缓存的tab页签
+        settings = QSettings("daily_report_tool", "config")
+        cached_dirs = settings.value("cached_dirs", [])
+        if isinstance(cached_dirs, str):
+            # QSettings 可能返回字符串
+            import ast
+            try:
+                cached_dirs = ast.literal_eval(cached_dirs)
+            except Exception:
+                cached_dirs = []
+        if isinstance(cached_dirs, list):
+            self.selected_dirs = cached_dirs
+
         # 菜单栏
         self.menu_bar = QMenuBar(self)
         settings_menu = QMenu("设置", self)
@@ -232,6 +245,16 @@ class DailyReportApp(QWidget):
                 color: #666;
             }
         """)
+
+        # 自动恢复tab
+        if self.selected_dirs:
+            self.load_commits()
+
+    def closeEvent(self, event):
+        # 缓存当前已选tab目录
+        settings = QSettings("daily_report_tool", "config")
+        settings.setValue("cached_dirs", self.selected_dirs)
+        super().closeEvent(event)
 
     def add_tab_with_close(self, path, icon, tab_content):
         # 只用PyQt自带的关闭按钮，不手动加✖
