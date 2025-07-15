@@ -7,7 +7,7 @@ os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
-    QPushButton, QFileDialog, QLabel, QTabWidget, QDateEdit, QLineEdit, QComboBox, QMenuBar, QMenu, QAction, QInputDialog, QMessageBox, QDialog
+    QPushButton, QFileDialog, QLabel, QTabWidget, QDateEdit, QLineEdit, QComboBox, QMenuBar, QMenu, QAction, QInputDialog, QMessageBox, QDialog, QListWidget, QAbstractItemView
 )
 from PyQt5.QtCore import QDate, QThread, pyqtSignal, QSettings, Qt, QUrl
 from PyQt5.QtGui import QIcon, QDesktopServices
@@ -17,6 +17,7 @@ from ai_client import call_qwen
 from exporter import export_report
 import pyperclip
 import re
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem
 
 class AIStreamThread(QThread):
     chunk_received = pyqtSignal(str)
@@ -30,6 +31,20 @@ class AIStreamThread(QThread):
         for chunk in call_qwen(self.prompt):
             self.chunk_received.emit(chunk)
         self.finished.emit()
+
+class FolderItemWidget(QWidget):
+    def __init__(self, folder_path, remove_callback, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.label = QLabel(folder_path)
+        self.remove_btn = QPushButton('❌')
+        self.remove_btn.setFixedSize(22, 22)
+        self.remove_btn.setStyleSheet('QPushButton { border: none; color: #e74c3c; font-size: 16px; } QPushButton:hover { background: #ffeaea; }')
+        layout.addWidget(self.label)
+        layout.addStretch(1)
+        layout.addWidget(self.remove_btn)
+        self.remove_btn.clicked.connect(lambda: remove_callback(folder_path))
 
 class ApiKeyDialog(QDialog):
     def __init__(self, current_key, parent=None):
@@ -116,9 +131,13 @@ class DailyReportApp(QWidget):
 
         self.tab_widget = QTabWidget()
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
+        self.tab_widget.tabBar().setTabsClosable(True)
+        self.tab_widget.tabBar().tabCloseRequested.connect(self.close_tab)
 
         left_layout.addWidget(self.dir_label)
         left_layout.addLayout(dir_btn_layout)
+        # 文件夹列表（自定义item）
+        # 删除FolderItemWidget和dir_list相关内容，恢复原布局
         left_layout.addWidget(QLabel("选择日期："))
         left_layout.addWidget(self.date_picker)
         left_layout.addWidget(QLabel("提示词："))
@@ -214,17 +233,35 @@ class DailyReportApp(QWidget):
             }
         """)
 
+    def add_tab_with_close(self, path, icon, tab_content):
+        # 只用PyQt自带的关闭按钮，不手动加✖
+        base_name = os.path.basename(path)
+        self.tab_widget.addTab(tab_content, icon, base_name)
+
+    def close_tab(self, index):
+        # 删除tab和对应目录
+        if 0 <= index < len(self.selected_dirs):
+            del self.selected_dirs[index]
+        self.tab_widget.removeTab(index)
+        self.load_commits()
+
     def select_dirs(self):
-        dir_path = QFileDialog.getExistingDirectory(self, "选择目录", "", QFileDialog.ShowDirsOnly)
+        settings = QSettings("daily_report_tool", "config")
+        last_dir = settings.value("last_dir", "")
+        dir_path = QFileDialog.getExistingDirectory(self, "选择目录", last_dir, QFileDialog.ShowDirsOnly)
         if dir_path:
             self.selected_dirs = [dir_path]
             self.load_commits()
+            settings.setValue("last_dir", dir_path)
 
     def add_dir(self):
-        dir_path = QFileDialog.getExistingDirectory(self, "添加目录", "", QFileDialog.ShowDirsOnly)
+        settings = QSettings("daily_report_tool", "config")
+        last_dir = settings.value("last_dir", "")
+        dir_path = QFileDialog.getExistingDirectory(self, "添加目录", last_dir, QFileDialog.ShowDirsOnly)
         if dir_path and dir_path not in self.selected_dirs:
             self.selected_dirs.append(dir_path)
             self.load_commits()
+            settings.setValue("last_dir", dir_path)
 
     def load_commits(self):
         self.tab_widget.clear()
@@ -266,7 +303,7 @@ class DailyReportApp(QWidget):
             vbox.addWidget(text_edit)
             tab_content.setLayout(vbox)
             icon = self.style().standardIcon(QStyle.SP_DirIcon)
-            self.tab_widget.addTab(tab_content, icon, os.path.basename(path))
+            self.add_tab_with_close(path, icon, tab_content)
         self.tab_widget.setCurrentIndex(0)
 
     def filter_commits_by_author(self, block_info, author):
