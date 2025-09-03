@@ -141,6 +141,10 @@ class DailyReportApp(QWidget):
         self.prompt_input.setPlainText("你是一名专业的产品开发人员，请根据以下 Git 提交记录中的标题和描述信息，帮我生成一份简洁明了的开发日报。要求如下：1.使用中文编写；2.分点列出每个提交的主要改动；3.总结今日工作成果；4.控制在 200~300 字以内；")
         self.prompt_input.setMinimumHeight(60)
         self.prompt_input.setMaximumHeight(120)
+        # 恢复缓存的提示词
+        cached_prompt = settings.value("cached_prompt", "")
+        if isinstance(cached_prompt, str) and cached_prompt.strip():
+            self.prompt_input.setPlainText(cached_prompt)
 
         self.tab_widget = QTabWidget()
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
@@ -254,6 +258,8 @@ class DailyReportApp(QWidget):
         # 缓存当前已选tab目录
         settings = QSettings("daily_report_tool", "config")
         settings.setValue("cached_dirs", self.selected_dirs)
+        # 缓存当前提示词
+        settings.setValue("cached_prompt", self.prompt_input.toPlainText())
         super().closeEvent(event)
 
     def add_tab_with_close(self, path, icon, tab_content):
